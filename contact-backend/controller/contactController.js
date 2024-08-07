@@ -8,7 +8,7 @@ const Tags = require('../models/tagModel');
 const getAllContacts = async (req, res) => {
     try {
         const contacts = await Contacts.find({}).sort({ createdAt: -1 });
-        res.status(200).json(contacts);
+        res.status(200).json({message: "Contacts retrieved successfully",contacts});
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching contacts', error: error.message });

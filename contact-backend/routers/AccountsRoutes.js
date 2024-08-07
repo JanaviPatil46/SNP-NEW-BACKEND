@@ -1,20 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const accountsController = require('../controller/AccountController'); // Adjust the path to your actual controller
+const { createAccount, getAccount, getAccounts, updateAccount, deleteAccount, getAccountsList, getAccountsListById } = require('../controller/AccountController'); // Adjust the path to your actual controller
 
-// Create a new account
-router.post('/', accountsController.createAccount);
+router.get('/accountdetails', getAccounts)
 
-// Get all accounts
-router.get('/', accountsController.getAllAccounts);
+router.get('/accountdetails/:id', getAccount)
 
-// Get a single account by ID
-router.get('/:id', accountsController.getAccountById);
+router.post('/accountdetails', createAccount)
 
-// Update an account by ID
-router.put('/:id', accountsController.updateAccount);
+router.delete('/accountdetails/:id', deleteAccount)
 
-// Delete an account by ID
-router.delete('/:id', accountsController.deleteAccount);
+router.patch('/accountdetails/:id', updateAccount)
+
+router.get('/account/accountdetailslist/', getAccountsList)
+
+router.get('/accountdetails/accountdetailslist/listbyid/:id', getAccountsListById)
 
 module.exports = router;

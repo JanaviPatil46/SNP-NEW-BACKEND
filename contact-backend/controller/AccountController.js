@@ -1,69 +1,204 @@
 const Accounts = require('../models/AccountModel'); // Adjust the path to your actual model
 const Tags = require('../models/tagModel');
-// Create a new account
+const User = require('../models/userModel');
+
+
+// POST a new account
 const createAccount = async (req, res) => {
     try {
-        const account = new Accounts(req.body);
-        await account.save();
-        res.status(201).json(account);
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-};
+        let newAccount;
+        let newCompanyAccount;
 
-// Get all accounts
-const getAllAccounts = async (req, res) => {
-    try {
-        const accounts = await Accounts.find().populate({ path: 'tags', model: 'Tags' }); // Adjust populate as needed
-        res.status(200).json(accounts);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
+        const { clientType, accountName, tags, teamMember,   active } = req.body;
 
-// Get a single account by ID
-const getAccountById = async (req, res) => {
-    try {
-        const account = await Accounts.findById(req.params.id).populate({ path: 'tags', model: 'Tags' }); // Adjust populate as needed
-        if (!account) {
-            return res.status(404).json({ message: 'Account not found' });
+        newAccount = await Accounts.create({ clientType, accountName, tags, teamMember,   active });
+
+        if (clientType === 'Company') {
+            const { companyName, country, streetAddress, city, state, postalCode, active } = req.body;
+
+            newCompanyAccount = await companyAddress.create({ companyName, country, streetAddress, city, state, postalCode, companyId: newAccount._id, active });
         }
-        res.status(200).json(account);
+
+      
+
+        res.status(200).json({
+            message: "Account created successfully",
+            newAccount,
+            newCompanyAccount: newCompanyAccount ? {
+                companyId: newCompanyAccount.companyId,
+                companyName: newCompanyAccount.companyName,
+                country: newCompanyAccount.country,
+                streetAddress: newCompanyAccount.streetAddress,
+                city: newCompanyAccount.city,
+                state: newCompanyAccount.state,
+                postalCode: newCompanyAccount.postalCode,
+                active: newCompanyAccount.active
+            } : null
+        });
+
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(400).json({ error: error.message });
     }
 };
 
-// Update an account by ID
-const updateAccount = async (req, res) => {
+
+
+//get all accounts
+const getAccounts = async (req, res) => {
     try {
-        const account = await Accounts.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).populate({ path: 'tags', model: 'Tags' }); // Adjust populate as needed
-        if (!account) {
-            return res.status(404).json({ message: 'Account not found' });
-        }
-        res.status(200).json(account);
+        const accounts = await Accounts.find({})
+            .populate({ path: 'tags', model: 'Tags' })
+            .populate({ path: 'teamMember', model: 'User' })
+           
+        //sort({ createdAt: -1 });
+        res.status(200).json({ message: "Accounts retrieved successfully", accounts })
+
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ error: error.message })
+    }
+}; 
+//Get a single Account
+const getAccount = async (req, res) => {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({ error: "Invalid Account ID" });
+    }
+    try {
+        const account = await Accounts.findById(id);
+
+        if (!account) {
+            return res.status(404).json({ error: "No such Account" });
+        }
+
+        res.status(200).json({ message: "Account retrieved successfully", account });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 };
 
-// Delete an account by ID
+//delete a Account
+
 const deleteAccount = async (req, res) => {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({ error: "Invalid Account ID" });
+    }
+
     try {
-        const account = await Accounts.findByIdAndDelete(req.params.id);
-        if (!account) {
-            return res.status(404).json({ message: 'Account not found' });
+        const deletedAccount = await Accounts.findByIdAndDelete({ _id: id });
+        if (!deletedAccount) {
+            return res.status(404).json({ error: "No such Account" });
         }
-        res.status(200).json({ message: 'Account deleted successfully' });
+        res.status(200).json({ message: "Account deleted successfully", deletedAccount });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ error: error.message });
+    }
+};
+
+//update a new Account 
+const updateAccount = async (req, res) => {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({ error: "Invalid Account ID" });
+    }
+
+    try {
+        const updatedAccount = await Accounts.findOneAndUpdate(
+            { _id: id },
+            { ...req.body },
+            { new: true }
+        );
+
+        if (!updatedAccount) {
+            return res.status(404).json({ error: "No such Account" });
+        }
+
+        res.status(200).json({ message: "Account Updated successfully", updatedAccount });
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+};
+//get all accounts List
+const getAccountsList = async (req, res) => {
+    try {
+        const accounts = await Accounts.find({})
+            .populate({ path: 'tags', model: 'Tags' })
+            .populate({ path: 'teamMember', model: 'User' })
+            
+
+
+        const accountlist = accounts.map(account => {
+
+            return {
+                id: account._id,
+                Name: account.accountName,
+                Follow: "",
+                Type: account.clientType,
+                Invoices: "",
+                Credits: "",
+                Tasks: "",
+                Team: account.teamMember,
+                Tags: account.tags,
+                Proposals: "",
+                Unreadchats: "",
+                Pendingorganizers: "",
+                Pendingsignatures: "",
+                Lastlogin: "",
+            };
+        });
+
+
+        //sort({ createdAt: -1 });
+        res.status(200).json({ message: "Accounts retrieved successfully", accountlist })
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
+};
+//get all accounts List
+const getAccountsListById = async (req, res) => {
+    const { id } = req.params;
+    
+    try {
+        const accounts = await Accounts.findById(id)
+            .populate({ path: 'tags', model: 'Tags' })
+            .populate({ path: 'teamMember', model: 'User' })
+          
+
+            const accountlist = ({
+                id: accounts._id,
+                Name: accounts.accountName,
+                Follow: "",
+                Type: accounts.clientType,
+                Invoices: "",
+                Credits: "",
+                Tasks: "",
+                Team: accounts.teamMember,
+                Tags: accounts.tags,
+                Proposals: "",
+                Unreadchats: "",
+                Pendingorganizers: "",
+                Pendingsignatures: "",
+                Lastlogin: "",
+                Contacts : accounts.contacts,
+            });
+        
+
+       //sort({ createdAt: -1 });
+        res.status(200).json({ message: "Accounts retrieved successfully", accountlist })
+    } catch (error) {
+        res.status(500).json({ error: error.message })
     }
 };
 
 module.exports = {
     createAccount,
-    getAllAccounts,
-    getAccountById,
+    getAccount,
+    getAccounts,
     updateAccount,
-    deleteAccount
-};
+    deleteAccount,
+    getAccountsList,
+    getAccountsListById
+}
