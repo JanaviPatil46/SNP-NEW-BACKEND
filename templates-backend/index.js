@@ -7,6 +7,9 @@ const dbconnect = require('./database/db');
 const jobTemplateRoutes = require('./routes/jobTemplateRoutes')
 const emailTemplateRoutes = require('./routes/emailTemplateRoutes')
 const pipelineTemplateRoutes = require('./routes/pipelineTemplateRoutes')
+const taskTemplateRoutes = require('./routes/taskTemplateRoutes')
+const serviceRoutes = require('./routes/serviceRoutes')
+const CategoryRoutes = require('./routes/CategoryRoutes')
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -25,6 +28,16 @@ app.use('/workflow', emailTemplateRoutes)
 
 // routes for pipelineTemplates
 app.use('/workflow/pipeline', pipelineTemplateRoutes)
+
+// routes for tasktemplate
+app.use('/workflow/tasks', taskTemplateRoutes)
+
+// routes for services
+app.use('/workflow/services', serviceRoutes)
+
+// routes for category
+app.use('/workflow/category', CategoryRoutes)
+// /workflow/category
 // database connect
 dbconnect()
 

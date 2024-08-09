@@ -1,47 +1,35 @@
 const mongoose = require('mongoose');
 
-const jobSchema = new mongoose.Schema({
-    accounts: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Accounts',
-    }],
-
-    pipeline: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'pipeline',
-    },
-
-    stageid: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Stage' // Reference to the 'stageSchema'
-    },
+const taskTemplateSchema = new mongoose.Schema({
     templatename: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'JobTemplate'
+        type: String,
+        required: [true, 'Template name is required'],
+        trim: true
     },
-    jobname: {
+    status: {
         type: String,
     },
 
-    addshortcode: {
-        type: String,
-    },
-
-    jobassignees: [{
-        type: Array,
+    taskassignees: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
+        type: Array,
     }],
 
     priority: {
         type: String,
-        // enum: ['Urgent', 'High', 'Medium', 'Low'],
-        required: [true, 'Priority is required']
     },
 
     description: {
         type: String,
     },
+
+    tags: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Tags', 
+        type: Array,
+    }],
+
     absolutedates: {
         type: Boolean,
         required: [true, 'Absolute dates flag is required']
@@ -55,7 +43,6 @@ const jobSchema = new mongoose.Schema({
     },
     startsinduration: {
         type: String,
-        enum: ['Days', 'Months', 'Years',''],
         required: function () {
             return !this.absolutedates;
         }
@@ -69,7 +56,6 @@ const jobSchema = new mongoose.Schema({
     },
     dueinduration: {
         type: String,
-        enum: ['Days', 'Months', 'Years',''],
         required: function () {
             return !this.absolutedates;
         }
@@ -86,14 +72,15 @@ const jobSchema = new mongoose.Schema({
             return this.absolutedates;
         }
     },
-    comments: {
+    subtasks: [{
         type: String
-    },
+    }],
     active: {
         type: Boolean,
         default: true
     }
+
 }, { timestamps: true });
 
-const Job = mongoose.model('Job', jobSchema);
-module.exports = Job;
+const TaskTemplate = mongoose.model('TaskTemplate', taskTemplateSchema);
+module.exports = TaskTemplate;
